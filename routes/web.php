@@ -20,7 +20,7 @@ Route::post('/logout', [LogoutController::class, 'logout'])->name('logout.button
 Route::get('/coupons', [CouponController::class, 'init'])->name('coupons.page');
 
 // Creating coupon
-Route::post('/createCoupon', [CouponController::class, 'createCoupon'])->name('createCoupon.action');
+Route::post('/createCoupon', [CouponController::class, 'createCoupon'])->name('createCouponAction');
 
 // Deleting session cookies to log user out
 Route::post('/logout', [LogoutController::class, 'logout'])->name('logout.button');

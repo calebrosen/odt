@@ -4,6 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <title>Create a Coupon - Order Desk Tools</title>
     <!-- Styles / Scripts -->
     @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
@@ -45,12 +46,29 @@
         </div>
 
         <div>
-            <input type="number" required id="amountInput" class="text-white py-3 mt-4 px-4 bg-teal-500 bg-opacity-60 text-3xl rounded-lg placeholder:text-teal-50 placeholder:font-semibold border border-white/15 focus:outline-none focus:border-white/55 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" max="20" placeholder="Coupon Amount" autofocus>
+            <input type="number" required id="amountInput" class="text-white py-3 mt-4 px-4 bg-teal-500 bg-opacity-60 text-3xl rounded-lg placeholder:text-teal-50 placeholder:font-semibold border border-white/15 focus:outline-none focus:border-white/55 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" max="{{ session('couponBalanceActual') }}" placeholder="Coupon Amount" autofocus>
             <button type="submit" onClick="confirmCreateCoupon()" class="text-white py-3 mt-4 px-4 bg-teal-500 text-3xl rounded-lg placeholder:text-teal-50 placeholder:text-center cursor-pointer font-bold hover:bg-teal-600 transition duration-300 placeholder:font-semibold border border-white/15 focus:outline-none focus:border-white/55 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">Create</button>
         </div>
-
-        <div id='previousCoupons'>
-        </div>
+        <table class="table-auto bg-black bg-opacity-20 backdrop-blur-lg rounded-xl mt-1 shadow-xl max-w-5xl w-full p-6 my-2">
+            <tr class="p-3">
+                <th class="py-3 px-4 text-2xl text-emerald-100 text-left">Store</th>
+                <th class="py-3 px-4 text-2xl text-emerald-100 text-left">Code</th>
+                <th class="py-3 px-4 text-2xl text-emerald-100 text-left">Discount</th>
+                <th class="py-3 px-4 text-2xl text-emerald-100 text-left">Creation Date</th>
+                <th class="py-3 px-4 text-2xl text-emerald-100 text-left">Order ID</th>
+                <th class="py-3 px-4 text-2xl text-emerald-100 text-left">Delete</th>
+            </tr>
+            @foreach ($currentCoupons as $coupon)
+            <tr>
+                <td class="py-3 px-4 text-xl text-left">{{ $coupon->store }}</td>
+                <td class="py-3 px-4 text-xl text-left">{{ $coupon->code }}</td>
+                <td class="py-3 px-4 text-xl text-left">{{ $coupon->discount }}</td>
+                <td class="py-3 px-4 text-xl text-left">{{ $coupon->date_added }}</td>
+                <td class="py-3 px-4 text-xl text-left">{{ $coupon->order_id }}</td>
+                <td class="py-3 px-4 text-xl text-left cursor-pointer" data-custom-coupon-code="{{ $coupon->code }}" data-custom-coupon-store="{{ $coupon->store }}" onClick="deleteCoupon(this)">Delete</td>
+            </tr>
+            @endforeach
+        </table>
         @endif
     </div>
 </body>
@@ -67,6 +85,7 @@
         </svg>
     </button>
 </div>
+
 <script>
     document.getElementById('logoutButton').addEventListener('click', function() {
         fetch("{{ route('logout.button') }}", {
@@ -92,27 +111,26 @@
         let maxValue = parseFloat(this.max);
         let value = parseFloat(this.value);
 
-        //Resetting value if it's not a number
+        // Resetting value if it's not a number
         if (isNaN(value)) {
             this.value = '';
         }
 
-        //Putting maxValue to 0 if it's negative
+        // Putting maxValue to 0 if it's negative
         if (maxValue < 0) {
             maxValue = 0;
         }
 
-        //If a number is inputted that is above maxValue, setting value to maxValue
+        // If a number is inputted that is above maxValue, setting value to maxValue
         if (value > maxValue) {
             this.value = maxValue;
         }
 
-        //If a negative number is entered, setting value to 0
+        // If a negative number is entered, setting value to 0
         else if (value < 0) {
             this.value = 0;
         }
     });
-
 
     function confirmCreateCoupon() {
         let amount = document.getElementById('amountInput').value;
@@ -123,18 +141,105 @@
                 selectedStore = store.value;
             }
         }
-        Swal.fire({
-            icon: 'question',
-            showDenyButton: true,
-            confirmButtonText: "Create",
-            denyButtonText: "Cancel",
-            title: `Coupon for $${amount} on ${selectedStore}`,
-            text: `Are you sure that you want to create this coupon?`,
-            customClass: 'bg-cyan-700 text-white text-2xl',
-            color: '#ffffff',
-            confirmButtonColor: '#00b5ad',
-        });
 
+        if (selectedStore !== '' && amount) {
+            Swal.fire({
+                icon: 'question',
+                showDenyButton: true,
+                confirmButtonText: "Create",
+                denyButtonText: "Cancel",
+                title: `Coupon for $${amount} on ${selectedStore}`,
+                text: "Are you sure that you want to create this coupon?",
+                customClass: 'bg-cyan-700 text-white text-xl',
+                color: '#ffffff',
+                confirmButtonColor: '#00b5ad'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.showLoading();
+                    // User confirmed, posting to create the coupon
+                    fetch("{{ route('createCouponAction') }}", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                            },
+                            body: JSON.stringify({
+                                couponAmount: amount,
+                                store: selectedStore,
+                                agentID: "{{ session('agentID') }}"
+                            })
+                        })
+                        .then(response => {
+                            return response.text();
+                        })
+                        .then(responseText => {
+                            try {
+                                const data = JSON.parse(responseText);
+                                if (data.success && data.data[0].CouponCode) {
+                                    copyToClipboard(data.data[0].CouponCode);
+                                    setTimeout(function() {
+                                        location.reload();
+                                    }, 5500);
+                                } else {
+                                    alert('Failed to create coupon.');
+                                }
+                            } catch (e) {
+                                console.error('Error parsing JSON:', e);
+                                alert('Response is not valid JSON.');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error creating coupon:', error);
+                            alert('An error occurred.');
+                        });
+                }
+            })
+        }
+    }
+
+    function deleteCoupon(tdElement) {
+        const couponCode = tdElement.getAttribute('data-custom-coupon-code');
+        const store = tdElement.getAttribute('data-custom-coupon-store');
+        if (couponCode && store) {
+            Swal.fire({
+                title: `Delete code ${couponCode}?`,
+                text: `Are you sure you want to delete coupon ${couponCode} on ${store}?`,
+                icon: "warning",
+                showCancelButton: true,
+                customClass: 'bg-cyan-700 text-white text-xl',
+                color: '#ffffff',
+                confirmButtonColor: '#00b5ad'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    
+                    Swal.fire({
+                        title: "Deleted!",
+                        text: `Coupon code ${couponCode} on ${store} has been deleted.`,
+                        icon: "success",
+                        timer: 3000
+                    });
+                }
+                });
+        }
+    }
+
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text)
+            .then(() => {
+                Swal.fire({
+                        icon: 'success',
+                        title: `Code copied to clipboard`,
+                        text: `Coupon code ${text} has been copied to the clipboard.`,
+                        customClass: 'bg-cyan-700 text-white text-xl',
+                        timerProgressBar: true,
+                        color: '#ffffff',
+                        confirmButtonColor: '#00b5ad',
+                        timer: 5000
+                    })
+                    .catch(err => {
+                        console.error('Failed to copy: ', err);
+                    });
+            })
     }
 </script>
 
