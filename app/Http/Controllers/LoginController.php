@@ -21,11 +21,11 @@ class LoginController extends Controller
             ->first();
     
         if ($loginAttempt) {
-            $userID = $loginAttempt->AgentID;
+            $agentID = $loginAttempt->AgentID;
             $agentName = $loginAttempt->Agent;
             $agentFName = explode("_", $agentName)[0];
             // Store user ID in the session (which will be stored in a cookie)
-            Session::put('user_id', $userID);
+            Session::put('agentID', $agentID);
             Session::put('agentName', $agentFName);
             // Redirect to dashboard
 
