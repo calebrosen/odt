@@ -15,17 +15,17 @@
     <div class="flex flex-col items-center justify-center gap-12 p-8">
         <!-- Main container for the title -->
         @if(session('agentName'))
-            <div class="bg-black bg-opacity-20 backdrop-blur-lg border border-white/15 rounded-xl shadow-xl max-w-xl w-full p-6 mt-16 space-y-6">
+            <div class="bg-black bg-opacity-10 backdrop-blur-lg border border-white/15  rounded-xl shadow-xl py-4 px-6 mt-16 space-y-6">
                 <h1 class="text-6xl font-semibold text-center text-white">Welcome, {{ session('agentName') }}</h1>
             </div>
 
             <!-- Buttons container -->
             <div class="flex flex-row gap-8 justify-center font-semibold">
-                <a href="/coupons">
-                    <button class="bg-cyan-700 hover:scale-105 hover:bg-blue-800 focus:ring-4 text-2xl focus:outline-none focus:ring-blue-300 text-white rounded-lg  p-5 transition duration-300  hover:bg-teal-700 dark:focus:ring-blue-800">Make a Coupon</button>
+                <a href="{{ route('coupons.page') }}">
+                    <button class="bg-teal-500 hover:scale-105 hover:bg-blue-800 focus:ring-4 text-2xl focus:outline-none focus:ring-cyan-300 text-white rounded-lg  p-5 transition duration-300  hover:bg-teal-700 dark:focus:ring-cyan-800">Manage Coupons</button>
                 </a>
-                <a href="/releases">
-                    <button class="bg-cyan-700 hover:scale-105 hover:bg-blue-800 focus:ring-4 text-2xl focus:outline-none focus:ring-blue-300 text-white rounded-lg  p-5 transition duration-300  hover:bg-teal-700 dark:focus:ring-blue-800">Release a Product</button>
+                <a href="{{ route('releases.page') }}">
+                    <button class="bg-teal-500 hover:scale-105 hover:bg-blue-800 focus:ring-4 text-2xl focus:outline-none focus:ring-cyan-300 text-white rounded-lg p-5 transition duration-300 hover:bg-teal-700 dark:focus:ring-cyan-800">Release a Product</button>
                 </a>
             </div>
         @endif
@@ -41,7 +41,7 @@
 </div>
 <script>
     document.getElementById('logoutButton').addEventListener('click', function() {
-        fetch("{{ route('logout.button') }}", {
+        fetch("{{ route('auth.logout') }}", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

@@ -20,7 +20,8 @@ class CouponController extends Controller
             $stores = DB::select('SELECT ms_short_name from unify.managed_stores WHERE ms_short_name NOT LIKE "OCM"');
             return view('coupons', compact('stores', 'currentCoupons'));
         }
-        return redirect()->route('login.page');
+        // Redirecting if not logged in
+        return redirect()->route('auth.login.page');
     }
 
     private function setCouponValues($agentID) {
@@ -76,11 +77,27 @@ class CouponController extends Controller
             
             // Calling create coupon procedure
             $code = DB::select('CALL usp_CreateCoupon_v3(?,?,?)', [$agentID, $store, $couponAmount]);
-            Session::put('couponCode',$code);
-
+ 
             return response()->json([
                 'success' => true,
                 'data' => $code
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function deleteCoupon(Request $request) {
+        try {
+            $store = $request->input('store');
+            $couponCode = $request->input('couponCode');
+
+            // Calling delete coupon procedure
+            DB::select('CALL usp_deleteAgentCoupon(?,?)', [$store, $couponCode]);
+
+            return response()->json([
+                'success' => true,
             ]);
 
         } catch (\Exception $e) {

@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>Create a Coupon - Order Desk Tools</title>
+    <title>Manage Coupons - Order Desk Tools</title>
     <!-- Styles / Scripts -->
     @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -29,8 +29,7 @@
         </div>
 
         <!-- Main container for the title -->
-        <div class="bg-black bg-opacity-20 backdrop-blur-lg border border-white/15 rounded-xl mt-1 shadow-xl max-w-xl w-full p-6 space-y-6">
-            <h1 class="text-6xl font-semibold text-center text-white">Create a Coupon</h1>
+        <div class="bg-black bg-opacity-10 backdrop-blur-lg border border-white/15 rounded-xl mt-1 shadow-xl max-w-xl w-full p-6 space-y-6">
             @if(session('couponsUsedPretty'))
             <div class="text-3xl font-semibold text-emerald-100 flex justify-between">
                 <span>Coupons Used:</span>
@@ -46,29 +45,40 @@
         </div>
 
         <div>
-            <input type="number" required id="amountInput" class="text-white py-3 mt-4 px-4 bg-teal-500 bg-opacity-60 text-3xl rounded-lg placeholder:text-teal-50 placeholder:font-semibold border border-white/15 focus:outline-none focus:border-white/55 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" max="{{ session('couponBalanceActual') }}" placeholder="Coupon Amount" autofocus>
+            <input type="number" required id="amountInput" class="text-white py-3 mt-4 px-4 bg-teal-500 bg-opacity-60 text-3xl rounded-lg placeholder:text-teal-50 placeholder:font-semibold border-none outline-none focus:ring-2 focus:ring-teal-500 focus:border-cyan-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" max="{{ session('couponBalanceActual') }}" placeholder="Coupon Amount" autofocus>
             <button type="submit" onClick="confirmCreateCoupon()" class="text-white py-3 mt-4 px-4 bg-teal-500 text-3xl rounded-lg placeholder:text-teal-50 placeholder:text-center cursor-pointer font-bold hover:bg-teal-600 transition duration-300 placeholder:font-semibold border border-white/15 focus:outline-none focus:border-white/55 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">Create</button>
         </div>
-        <table class="table-auto bg-black bg-opacity-20 backdrop-blur-lg rounded-xl mt-1 shadow-xl max-w-5xl w-full p-6 my-2">
-            <tr class="p-3">
-                <th class="py-3 px-4 text-2xl text-emerald-100 text-left">Store</th>
-                <th class="py-3 px-4 text-2xl text-emerald-100 text-left">Code</th>
-                <th class="py-3 px-4 text-2xl text-emerald-100 text-left">Discount</th>
-                <th class="py-3 px-4 text-2xl text-emerald-100 text-left">Creation Date</th>
-                <th class="py-3 px-4 text-2xl text-emerald-100 text-left">Order ID</th>
-                <th class="py-3 px-4 text-2xl text-emerald-100 text-left">Delete</th>
-            </tr>
-            @foreach ($currentCoupons as $coupon)
-            <tr>
-                <td class="py-3 px-4 text-xl text-left">{{ $coupon->store }}</td>
-                <td class="py-3 px-4 text-xl text-left">{{ $coupon->code }}</td>
-                <td class="py-3 px-4 text-xl text-left">{{ $coupon->discount }}</td>
-                <td class="py-3 px-4 text-xl text-left">{{ $coupon->date_added }}</td>
-                <td class="py-3 px-4 text-xl text-left">{{ $coupon->order_id }}</td>
-                <td class="py-3 px-4 text-xl text-left cursor-pointer" data-custom-coupon-code="{{ $coupon->code }}" data-custom-coupon-store="{{ $coupon->store }}" onClick="deleteCoupon(this)">Delete</td>
-            </tr>
-            @endforeach
+        <table class="table-auto bg-black bg-opacity-10 backdrop-blur-lg rounded-xl mt-1 shadow-xl border border-white/15 p-2 my-2 border-separate">
+            <thead>
+                <tr>
+                    <th class="py-3 px-4 text-2xl text-emerald-100 text-left rounded-tl-xl">Store</th>
+                    <th class="py-3 px-4 text-2xl text-emerald-100 text-left">Code</th>
+                    <th class="py-3 px-4 text-2xl text-emerald-100 text-left">Discount</th>
+                    <th class="py-3 px-4 text-2xl text-emerald-100 text-left">Creation Date</th>
+                    <th class="py-3 px-4 text-2xl text-emerald-100 text-left">Order ID</th>
+                    <th class="py-3 px-4 text-2xl text-emerald-100 text-left rounded-tr-xl">Delete</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($currentCoupons as $coupon)
+                <tr>
+                    <td class="py-3 px-4 text-xl text-left">{{ $coupon->store }}</td>
+                    <td class="py-3 px-4 text-xl text-left">{{ $coupon->code }}</td>
+                    <td class="py-3 px-4 text-xl text-left">{{ $coupon->discount }}</td>
+                    <td class="py-3 px-4 text-xl text-left">{{ $coupon->date_added }}</td>
+                    @if ($coupon->order_id == 0)
+                        <td class="py-3 px-4 text-xl text-left">No order placed</td>
+                        <td class="py-3 px-4 text-xl text-left text-sky-500 hover:text-sky-600 active:text-sky-600 cursor-pointer" data-custom-coupon-code="{{ $coupon->code }}" data-custom-coupon-store="{{ $coupon->store }}" onClick="deleteCoupon(this)">Delete</td>
+                    @else
+                        <td class="py-3 px-4 text-xl text-left">{{ $coupon->order_id }}</td>
+                        <td class="py-3 px-4 text-xl text-left">Order placed</td>
+                    @endif
+                </tr>
+                @endforeach
+            </tbody>
         </table>
+
+
         @endif
     </div>
 </body>
@@ -88,7 +98,7 @@
 
 <script>
     document.getElementById('logoutButton').addEventListener('click', function() {
-        fetch("{{ route('logout.button') }}", {
+        fetch("{{ route('auth.logout') }}", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -155,9 +165,8 @@
                 confirmButtonColor: '#00b5ad'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    Swal.showLoading();
                     // User confirmed, posting to create the coupon
-                    fetch("{{ route('createCouponAction') }}", {
+                    fetch("{{ route('coupons.create') }}", {
                             method: "POST",
                             headers: {
                                 "Content-Type": "application/json",
@@ -179,7 +188,7 @@
                                     copyToClipboard(data.data[0].CouponCode);
                                     setTimeout(function() {
                                         location.reload();
-                                    }, 5500);
+                                    }, 8000);
                                 } else {
                                     alert('Failed to create coupon.');
                                 }
@@ -199,11 +208,11 @@
 
     function deleteCoupon(tdElement) {
         const couponCode = tdElement.getAttribute('data-custom-coupon-code');
-        const store = tdElement.getAttribute('data-custom-coupon-store');
-        if (couponCode && store) {
+        const selectedStore = tdElement.getAttribute('data-custom-coupon-store');
+        if (couponCode && selectedStore) {
             Swal.fire({
                 title: `Delete code ${couponCode}?`,
-                text: `Are you sure you want to delete coupon ${couponCode} on ${store}?`,
+                text: `Are you sure you want to delete coupon ${couponCode} on ${selectedStore}?`,
                 icon: "warning",
                 showCancelButton: true,
                 customClass: 'bg-cyan-700 text-white text-xl',
@@ -211,13 +220,57 @@
                 confirmButtonColor: '#00b5ad'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    
-                    Swal.fire({
-                        title: "Deleted!",
-                        text: `Coupon code ${couponCode} on ${store} has been deleted.`,
-                        icon: "success",
-                        timer: 3000
-                    });
+                    fetch("{{ route('coupons.delete') }}", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                            },
+                            body: JSON.stringify({
+                                store: selectedStore,
+                                couponCode: couponCode
+                            })
+                        })
+                        .then(response => {
+                            console.log(response);
+                            return response.text();
+                        })
+                        .then(responseText => {
+                            try {
+                                const data = JSON.parse(responseText);
+                                console.log(data);
+                                if (data.success) {
+                                    Swal.fire({
+                                        title: "Deleted!",
+                                        text: `Coupon code ${couponCode} on ${selectedStore} has been deleted.`,
+                                        icon: "success",
+                                        customClass: 'bg-cyan-700 text-white text-xl',
+                                        color: '#ffffff',
+                                        timer: 3000,
+                                        showCancelButton: false,
+                                        showConfirmButton: false,
+                                        timerProgressBar: true
+                                    });
+                                    location.reload();
+                                } else {
+                                    Swal.fire({
+                                        title: "Error!",
+                                        text: "Failed to delete coupon",
+                                        icon: "error",
+                                        customClass: 'bg-cyan-700 text-white text-xl',
+                                        color: '#ffffff',
+                                        timer: 3000
+                                    });
+                                }
+                            } catch (e) {
+                                console.error('Error parsing JSON:', e);
+                                alert('Response is not valid JSON.');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error deleting coupon:', error);
+                            alert('An error occurred.');
+                        });
                 }
                 });
         }
@@ -234,7 +287,7 @@
                         timerProgressBar: true,
                         color: '#ffffff',
                         confirmButtonColor: '#00b5ad',
-                        timer: 5000
+                        timer: 7500
                     })
                     .catch(err => {
                         console.error('Failed to copy: ', err);

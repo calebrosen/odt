@@ -8,9 +8,9 @@ class AgentController extends Controller
 {
     public function showLoginPage()
     {
-        if (session('agentID') && session('agentName')) {
-            return redirect()->route('dashboard.page');
-        }
+        // if (session('agentID') && session('agentName')) {
+        //     return redirect()->route('dashboard.page');
+        // }
 
         // Fetch agents from the database
         $agents = CouponAgentList::select('AgentID', 'Agent')->where('status',1)->get();
